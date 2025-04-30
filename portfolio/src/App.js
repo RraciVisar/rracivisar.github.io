@@ -116,7 +116,7 @@ export default function App() {
             </>
             ) },
             { label: "GPA", string: "4.0" },
-            { label: "Best Model Accuracy", string: "79%" },
+            { label: "Best Model Accuracy", string: "82%" },
           ].map((kpi) => (
             <div key={kpi.label} className="text-center">
             <span className="block text-2xl sm:text-3xl md:text-4xl">
