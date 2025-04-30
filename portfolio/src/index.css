@@ -1,3 +1,20 @@
+/* ─── PRESS START 2P FONT + BLINKING DOTS ───────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body {
+  font-family: 'Press Start 2P', sans-serif;
+}
+
+.blink-ellipsis {
+  font-size: 2rem;
+  color: white;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
