@@ -1,4 +1,7 @@
-import React from "react";
+import { Viewer, Entity, CameraFlyTo, useCesium } from "resium";
+import { Cartesian3, Color, Ion } from "cesium";
+import "cesium/Build/Cesium/Widgets/widgets.css";
+
 import CountUp from "react-countup";
 import { motion } from "framer-motion";
 import { Typewriter } from "react-simple-typewriter";
@@ -10,6 +13,255 @@ import {
   Radar,
   ResponsiveContainer,
 } from "recharts";
+import React, { useState, useEffect, useRef } from "react";
+
+// ─── Configure Cesium Ion & Static Assets ───────────────────────────────────
+// Make sure REACT_APP_CESIUM_ION_TOKEN is set in your .env
+Ion.defaultAccessToken = process.env.REACT_APP_CESIUM_ION_TOKEN;
+// Copy node_modules/cesium/Build/Cesium into public/cesium so that
+// /cesium/Widgets, /cesium/Assets, /cesium/Workers, etc. resolve correctly
+window.CESIUM_BASE_URL = process.env.PUBLIC_URL + "/cesium";
+
+/* ───────── Location Data ───────── */
+  const locations = [
+    {
+      id: 1,
+      label: "Shreveport, LA",
+      lat: 32.5007,
+      lng: -93.7244,
+      description: [
+        "M.S. in Computer Science at LSUS",
+        " ---------------- ",
+        "Graduate Assistant – Machine Learning Lab",
+        " ---------------- ",
+        "B.A. in Legal Studies at Centenary College",
+        " ---------------- ",
+        "Student Development Ambassador",
+        " ---------------- ",
+        "Volunteer – Habitat for Humanity, The Hub, Shreveport Green (Up With People)",
+      ],
+    },
+    {
+      id: 2,
+      label: "Rutland, VT",
+      lat: 43.6106,
+      lng: -72.9726,
+      description: [
+        "Summer 2023: Mayor’s Assistant Intern",
+        " ---------------- ",
+        "Summer 2022: City Alderman Intern",
+        " ---------------- ",
+        "Summer 2021: City Alderman Intern",
+      ],
+    },
+    {
+      id: 3,
+      label: "Northern Ireland – Belfast, Derry, Corrymeela",
+      lat: 54.5973,
+      lng: -5.9301,
+      description: [
+        "Conflict Resolution & Peacebuilding Module",
+        " ---------------- ",
+        "2023 Spring",
+      ],
+    },
+    {
+      id: 4,
+      label: "Gjakovë, Kosovo",
+      lat: 42.3803,
+      lng: 20.4303,
+      description: [
+        "Hometown",
+        " ---------------- ",
+        "Photography & Videography Intern – Kodak Studio",
+        " ---------------- ",
+        "2014 – 2017",
+      ],
+    },
+    {
+      id: 5,
+      label: "Denver, CO",
+      lat: 39.7392,
+      lng: -104.9903,
+      description: [
+        "Volunteer Work: Family Promise & Denver Urban Gardens",
+        " ---------------- ",
+        "Up With People World Tour 2019",
+      ],
+    },
+    {
+      id: 6,
+      label: "Tulsa, OK",
+      lat: 36.1540,
+      lng: -95.9928,
+      description: [
+        "Volunteer Work: Tulsa State Fair – Youth engagement and logistics",
+        " ---------------- ",
+        "Penn Elementary – Cultural education workshop",
+        " ---------------- ",
+        "Up With People World Tour 2019",
+      ],
+    },
+    {
+      id: 7,
+      label: "Lafayette, LA",
+      lat: 30.2241,
+      lng: -92.0198,
+      description: [
+        "Volunteer Work: Boys & Girls Club",
+        " ---------------- ",
+        "Volunteer Work: Cemetery cleanup",
+        " ---------------- ",
+        "Up With People World Tour 2019",
+      ],
+    },
+    {
+      id: 8,
+      label: "Nyon, Switzerland",
+      lat: 44.3675,
+      lng: 5.1414,
+      description: [
+        "Volunteer Work: Maison de Retraite – Elderly care",
+        " ---------------- ",
+        "Up With People World Tour 2019",
+      ],
+    },
+    {
+      id: 9,
+      label: "Donaustauf, Germany",
+      lat: 49.0167,
+      lng: 12.2167,
+      description: [
+        "Montessori & Karl-Wittek-Schule – Inclusive workshops",
+        " ---------------- ",
+        "Up With People World Tour 2019",
+      ],
+    },
+    {
+      id: 10,
+      label: "Sanremo, Italy",
+      lat: 43.8153,
+      lng: 7.7760,
+      description: [
+        "UNESCO World Heritage Event Volunteer",
+        " ---------------- ",
+        "Admissions Intern: Sanremo High Schools",
+        " ---------------- ",
+        "Up With People World Tour 2019",
+      ],
+    },
+    {
+      id: 11,
+      label: "Agrigento, Italy",
+      lat: 37.3111,
+      lng: 13.5765,
+      description: [
+        "Mural painting with local students",
+        " ---------------- ",
+        "Admissions Intern: Agrigento Schools Locations",
+        " ---------------- ",
+        "Up With People World Tour 2019",
+      ],
+    },
+    {
+      id: 12,
+      label: "Palermo, Italy",
+      lat: 38.1157,
+      lng: 13.3615,
+      description: [
+        "Volunteer Work: Centro Ubuntu – Childcare & day program facilitation",
+        " ---------------- ",
+        "Admissions Intern: Palermo Schools Locations",
+        " ---------------- ",
+        "Up With People World Tour 2019",
+      ],
+    },
+    {
+      id: 13,
+      label: "Brindisi, Italy",
+      lat: 40.6320,
+      lng: 17.9360,
+      description: [
+        "Caritas – Community kitchen food service",
+        " ---------------- ",
+        "Admissions Intern: Brindisi Schools Location",
+        " ---------------- ",
+        "Up With People World Tour 2019",
+      ],
+    },  
+];
+
+function GlobeSection() {
+  const [hovered, setHovered] = useState(null);
+  const hasFlown = useRef(false);
+  const { viewer } = useCesium();
+
+  useEffect(() => {
+    if (viewer && !hasFlown.current) {
+      viewer.camera.flyTo({
+        destination: Cartesian3.fromDegrees(-93.7244, 32.5007, 1000000),
+        duration: 2,
+      });
+      hasFlown.current = true;
+    }
+  }, [viewer]);
+
+  return (
+      <div
+        className="relative w-full h-[900px] rounded-lg overflow-hidden shadow-lg"
+        onClick={() => {
+          if (window.innerWidth <= 768) setHovered(null);
+        }}
+      >
+    
+      <Viewer
+        infoBox={false}
+        selectionIndicator={false}
+        timeline={false}
+        animation={false}
+        navigationHelpButton={false}
+        navigationInstructionsInitiallyVisible={false}
+        fullscreenButton={false}
+      >
+    {locations.map((loc) => (
+      <Entity
+        key={loc.id}
+        name={loc.label}
+        description={loc.description}
+        position={Cartesian3.fromDegrees(loc.lng, loc.lat)}
+        point={{ pixelSize: 12, color: Color.YELLOW }}
+        onMouseEnter={() => {
+          if (window.innerWidth > 768) setHovered(loc); // hover only on desktop
+        }}
+        onMouseLeave={() => {
+          if (window.innerWidth > 768) setHovered(null);
+        }}
+        onClick={() => {
+          if (window.innerWidth <= 768) {
+            setHovered((prev) => (prev?.id === loc.id ? null : loc)); // toggle on mobile
+          }
+        }}
+      />
+    ))}
+
+      </Viewer>
+
+      {hovered && (
+        <div className="absolute top-4 left-4 bg-slate-900/90 text-white p-4 rounded-xl shadow-xl border border-yellow-300 z-50 w-72"
+              onClick={(e) => e.stopPropagation()}>
+          <div className="text-yellow-300 font-semibold text-sm">
+            {hovered.label}
+          </div>
+          <div className="text-slate-200 text-xs mt-1 space-y-1">
+            {Array.isArray(hovered.description)
+              ? hovered.description.map((line, i) => <p key={i}>{line}</p>)
+              : <p>{hovered.description}</p>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function App() {
   /* ───────── Data ───────── */
@@ -215,6 +467,15 @@ export default function App() {
           ))}
         </div>
       </section>
+
+{/* ─── 3D Globe ───────────────────────────────────────────── */}
+<section className="max-w-7xl mx-auto py-20 px-4">
+  <h2 className="text-3xl font-semibold text-center text-white mb-8">
+    Worldwide Experience
+  </h2>
+  <GlobeSection />
+</section>
+
     </main>
   );
 }
